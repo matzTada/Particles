@@ -16,19 +16,21 @@
 var pts = [];
 var cellsize = 20;
 
+var MARGIN = 0; // for Delaunoy Triangle
+
 function setup() {
   var can = createCanvas(windowWidth, windowHeight);
   can.parent("p5canvas");
   background(127);
 
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 100; i++) {
     pts.push(new Particle({
       x: random(0, width),
       y: random(0, height),
       vx: random(0, 2),
       vy: random(0, 2),
       r: 5,
-      area: 400
+      area: cellsize*4
     })
     );
   }
@@ -89,6 +91,39 @@ function draw() {
     }
   }
 
+  // Delaunay traiangle drawing
+  // translation from pts to vts
+  var vts = [];
+  for (var i = 0; i < pts.length; i++) {
+    var v = new Vertex(createVector(pts[i].x, pts[i].y));
+    vts.push(v);
+  }
+
+  var delaunayTriangulation = new DelaunayTriangulation();
+  for (var i = 0; i < vts.length; i++) {
+    delaunayTriangulation.add(vts[i]);
+  }
+  var triangles = delaunayTriangulation.getTriangles();
+
+  stroke(127, 127, 0);
+  // drawing
+  for (var ti = 0; ti < triangles.length; ti++) {
+    var t = triangles[ti];
+    // // <=== color changing
+    // var sat = 0;
+    // var bri = 0;
+    // for(var vi = 0; vi < 3; vi++) {
+    //   var v = t.vertices[vi];
+    //   sat += v.sat;
+    //   bri += v.bri;
+    // }
+    // sat /= 3;
+    // bri /= 3;
+    // fill(hueVal, sat, bri);
+    // stroke(hueVal, sat, bri);
+    // // color changing ===>
+    t.render();
+  }
 
 }
 
@@ -148,6 +183,170 @@ function Particle(param){
 
 function windowResized(){
   resizeCanvas(windowWidth, windowHeight);
+}
+
+function DelaunayTriangulation() {
+  this.triangles = [];
+  this.vertices = [];
+  this.superVertices = [];
+
+  this.add = function(_newv) {
+
+    for (var i = 0; i < this.vertices.length; i++) { // duplicate same point
+      if(_newv.loc.x == this.vertices[i].loc.x && _newv.loc.y == this.vertices[i].loc.y) {
+        return;
+      }
+    }
+
+    this.vertices.push(_newv);
+    var nextTriangles = [];
+    var newTriangles = [];
+    for (var ti = 0; ti < this.triangles.length; ti++) {
+      var tri = this.triangles[ti];
+      if(tri.circumCircle.isInCircle(_newv.loc)) {
+        newTriangles = newTriangles.concat(tri.divide(_newv));
+      } else {
+        nextTriangles.push(tri);
+      }
+    }
+
+    for (var ti = 0; ti < newTriangles.length; ti++) {
+      var tri = newTriangles[ti];
+      var isIllegal = false;
+      for (var vi = 0; vi < this.vertices.length; vi++) {
+        if (this.isIllegalTriangle(tri, this.vertices[vi])) {
+          isIllegal = true;
+          break;
+        }
+      }
+      if (!isIllegal) {
+        nextTriangles.push(tri);
+      }
+    }
+
+    this.triangles = nextTriangles;
+  }
+
+  this.getTriangles = function() {
+    var ts = [];
+
+    for (var ti = 0; ti < this.triangles.length; ti++) {
+      var t = this.triangles[ti];
+      var hasSuperVertex = false;
+      for (var vi = 0; vi < 3; vi++) {
+        if (t.isContain(this.superVertices[vi])) {
+          hasSuperVertex = true;
+        }
+      }
+      if (!hasSuperVertex) {
+        ts.push(t);
+      }
+    }
+
+    return ts;
+  }
+
+  this.getTrianglesWithSuperTriangle = function() {
+    return this.triangles;
+  }
+
+  this.isIllegalTriangle = function(t, v) {
+    if(t.isContain(v)) {
+      return false;
+    }
+    return t.circumCircle.isInCircle(v.loc);
+  }
+
+  var center = createVector(width / 2, height / 2);
+  var radius = sqrt(sq(width) + sq(height)) / 2;
+  var v1 = new Vertex(createVector(center.x - sqrt(3) * radius, center.y - radius));
+  var v2 = new Vertex(createVector(center.x + sqrt(3) * radius, center.y - radius));
+  var v3 = new Vertex(createVector(center.x, center.y +  2 * radius));
+  var t = new Triangle([v1, v2, v3]);
+
+  this.superVertices.push(v1);
+  this.superVertices.push(v2);
+  this.superVertices.push(v3);
+  this.vertices.push(v1);
+  this.vertices.push(v2);
+  this.vertices.push(v3);
+  this.triangles.push(t);
+
+}
+
+function drawTriangle(x1, y1, x2, y2, x3, y3){
+  beginShape();
+  vertex(x1, y1);
+  vertex(x2, y2);
+  vertex(x3, y3);
+  endShape(CLOSE);
+}
+
+function Triangle(_vertices) {
+  this.vertices = _vertices;
+
+  var v1 = this.vertices[0].loc;
+  var v2 = this.vertices[1].loc;
+  var v3 = this.vertices[2].loc;
+  var c = 2 * ((v2.x - v1.x) * (v3.y - v1.y) - (v2.y - v1.y) * (v3.x - v1.x));
+  var x = ((v3.y - v1.y) * (sq(v2.x) - sq(v1.x) + sq(v2.y) - sq(v1.y)) + (v1.y - v2.y) * (sq(v3.x) - sq(v1.x) + sq(v3.y) - sq(v1.y))) / c;
+  var y = ((v1.x - v3.x) * (sq(v2.x) - sq(v1.x) + sq(v2.y) - sq(v1.y)) + (v2.x - v1.x) * (sq(v3.x) - sq(v1.x) + sq(v3.y) - sq(v1.y))) / c;
+  var center = createVector(x, y);
+  var radius = v1.dist(center);
+  this.circumCircle = new Circle(center, radius);
+
+  this.render = function(){
+    drawTriangle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y);
+  }
+
+  this.divide = function(v) {
+    var tris = [];
+    for (var i = 0; i < 3; i++) {
+      var j = i == 2? 0: i + 1;
+      tris.push(new Triangle([this.vertices[i], this.vertices[j], v]));
+    }
+    return tris;
+  }
+
+  this.isContain = function(v) {
+    for (var i = 0; i < 3; i++) {
+      if (this.vertices[i] === v) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+}
+
+function Circle(_center, _radius) {
+  this.center = _center;
+  this.radius = _radius;
+
+  this.isInCircle = function(v) {
+    return this.center.dist(v) < this.radius;
+  }
+}
+
+function Vertex(loc) {
+  this.loc = loc;
+  var velAng = random(TWO_PI);
+  var velSize = 2.5;
+  this.vel = createVector(velSize * cos(velAng), velSize * sin(velAng));
+  this.sat = random(50, 100);
+  this.bri = random(30, 100);
+
+  this.update = function() {
+    this.loc.add(this.vel);
+    if (this.loc.x < -MARGIN || this.loc.x > width + MARGIN) {
+      this.vel.x *= -1;
+      this.loc.x += this.vel.x;
+    }
+    if (this.loc.y < -MARGIN || this.loc.y > height + MARGIN) {
+      this.vel.y *= -1;
+      this.loc.y += this.vel.y;
+    }
+  }
 }
 
 </script>
