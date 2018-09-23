@@ -14,6 +14,7 @@
 <script language="javascript" type="text/javascript">
 
 var pts = [];
+var cellsize = 30;
 
 function setup() {
   var can = createCanvas(windowWidth, windowHeight);
@@ -24,8 +25,8 @@ function setup() {
     pts.push(new Particle({
       x: random(0, width),
       y: random(0, height),
-      vx: random(-2, 2),
-      vy: random(-2, 2),
+      vx: random(0, 2),
+      vy: random(0, 2),
       r: 5,
       area: 70
     })
@@ -34,14 +35,59 @@ function setup() {
 }
 
 function draw() {
-  background(0);
+   background(0);
+  var exmatx = ceil(width/cellsize);
+  var exmaty = ceil(height/cellsize);
+
+  var exmat = new Array(exmaty);
+  for(let y = 0; y < exmaty; y++){
+    exmat[y] = new Array(exmatx).fill(0);
+  }
+
+  for (var y = 0; y < exmaty; y++) {
+    for (var x = 0; x < exmatx; x++) {
+      for(var tmppt of pts){
+        if(x*cellsize < tmppt.x && tmppt.x < (x+1)*cellsize && y*cellsize < tmppt.y && tmppt.y < (y+1)*cellsize ){
+          exmat[y][x] = 1;
+        }
+      }
+    }
+  }
+
+
   for(var tmppt of pts){
-    tmppt.move();
+    tmppt.move(exmat);
+  }
+
+
+  stroke(127);
+  for (var y = 0; y < exmaty; y++) {
+    for (var x = 0; x < exmatx; x++) {
+      if(exmat[y][x]==1){
+        fill(32);
+        rect(x*cellsize, y*cellsize, cellsize, cellsize);
+      }else if(exmat[y][x]==2){
+        fill(32, 0, 0);
+        rect(x*cellsize, y*cellsize, cellsize, cellsize);
+      }
+    }
   }
 
   for(var tmppt of pts){
     tmppt.show(pts);
   }
+
+  // display neighbor relation
+  stroke(0, 127, 0);
+  for(var tmppt2 of pts){
+    for(var tmppt1 of pts){
+      if(dist(tmppt2.x, tmppt2.y, tmppt1.x, tmppt1.y) < tmppt2.area){
+        line(tmppt2.x, tmppt2.y, tmppt1.x, tmppt1.y);
+      }
+    }
+  }
+
+
 }
 
 function Particle(param){
@@ -52,13 +98,32 @@ function Particle(param){
   this.r = param.r;
   this.area = param.area;
 
-  this.move = function(){
-    this.x += this.vx;
-    this.y += this.vy;
-    if(this.x < 0) this.x = width;
-    else if(width <= this.x) this.x = 0;
-    if(this.y < 0) this.y = height;
-    else if(height <= this.y) this.y = 0;
+  this.move = function(_exmat){
+
+    // get next cell
+    var nextx = this.x + this.vx;
+    var nexty = this.y + this.vy;
+    if(nextx < 0) nextx = width - nextx;
+    else if(width <= nextx) nextx = nextx - width;
+    if(nexty < 0) nexty = height - nexty;
+    else if(height <= nexty) nexty = nexty - height;
+
+    var nextnumx = floor(nextx/cellsize);
+    var nextnumy = floor(nexty/cellsize);
+
+    var numx = floor(this.x/cellsize);
+    var numy = floor(this.y/cellsize);
+
+    if((nextnumx != numx || nextnumy != numy) && (_exmat[nextnumy][nextnumx] == 1 || _exmat[nextnumy][nextnumx] == 2)){
+      _exmat[numy][numx] = 2;
+    }else{
+      this.x += this.vx;
+      this.y += this.vy;
+      if(this.x < 0) this.x = width;
+      else if(width <= this.x) this.x = 0;
+      if(this.y < 0) this.y = height;
+      else if(height <= this.y) this.y = 0;
+    }
   }
 
   this.show = function(_pts){
@@ -66,16 +131,15 @@ function Particle(param){
     noFill();
     ellipse(this.x, this.y, this.r, this.r);
 
-    stroke(127);
+    // show direction
+    stroke(255);
     noFill();
-    ellipse(this.x, this.y, this.area, this.area);
+    line(this.x, this.y, this.x + this.vx*10, this.y + this.vy*10);
 
-    for(var tmppt of _pts){
-      stroke(255);
-      if(dist(this.x, this.y, tmppt.x, tmppt.y) < this.area){
-        line(this.x, this.y, tmppt.x, tmppt.y);
-      }
-    }
+    // display area
+    // stroke(127);
+    // noFill();
+    // ellipse(this.x, this.y, this.area, this.area);
   }
 
 }
