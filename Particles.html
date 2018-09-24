@@ -142,14 +142,14 @@ function Particle(param){
 
     if((nextnumx != numx || nextnumy != numy) && (_exmat[nextnumy][nextnumx] == 1 || _exmat[nextnumy][nextnumx] == 2)){
       _exmat[numy][numx] = 2;
-    }else{
-      this.x += this.vx;
-      this.y += this.vy;
-      if(this.x < 0) this.x = width;
-      else if(width <= this.x) this.x = 0;
-      if(this.y < 0) this.y = height;
-      else if(height <= this.y) this.y = 0;
+      return;
     }
+    this.x += this.vx;
+    this.y += this.vy;
+    if(this.x < 0) this.x = width;
+    else if(width <= this.x) this.x = 0;
+    if(this.y < 0) this.y = height;
+    else if(height <= this.y) this.y = 0;
   }
 
   this.show = function(_pts){
