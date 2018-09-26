@@ -14,7 +14,7 @@
 <script language="javascript" type="text/javascript">
 
 var pts = [];
-var cellsize = 20;
+var cellsize = 40;
 
 var MARGIN = 0; // for Delaunoy Triangle
 
@@ -23,12 +23,12 @@ function setup() {
   can.parent("p5canvas");
   background(127);
 
-  for (var i = 0; i < 100; i++) {
+  for (var i = 0; i < 300; i++) {
     pts.push(new Particle({
       x: random(0, width),
       y: random(0, height),
-      vx: random(0, 2),
-      vy: random(0, 2),
+      vx: random(-4, 4),
+      vy: random(-4, 4),
       r: 5,
       area: cellsize*4
     })
@@ -37,7 +37,7 @@ function setup() {
 }
 
 function draw() {
-  cellsize = width/20;
+  // cellsize = width/20;
 
   var exmatx = ceil(width/cellsize);
   var exmaty = ceil(height/cellsize);
@@ -63,7 +63,7 @@ function draw() {
 
   background(0);
 
-  stroke(127);
+  stroke(63);
   for (var y = 0; y < exmaty; y++) {
     for (var x = 0; x < exmatx; x++) {
       if(exmat[y][x]==1){
@@ -81,7 +81,7 @@ function draw() {
   }
 
   // display neighbor relation
-  stroke(0, 127, 0);
+  stroke(127, 127, 0);
   for(var tmppt2 of pts){
     for(var tmppt1 of pts){
       if(dist(tmppt2.x, tmppt2.y, tmppt1.x, tmppt1.y) < tmppt2.area/2){
@@ -104,7 +104,7 @@ function draw() {
   }
   var triangles = delaunayTriangulation.getTriangles();
 
-  stroke(127, 127, 0);
+  stroke(0, 255, 0);
   // drawing
   for (var ti = 0; ti < triangles.length; ti++) {
     var t = triangles[ti];
@@ -160,7 +160,7 @@ function Particle(param){
     // show direction
     stroke(255);
     noFill();
-    line(this.x, this.y, this.x + this.vx*10, this.y + this.vy*10);
+    line(this.x, this.y, this.x + this.vx, this.y + this.vy);
 
     // // display area
     // stroke(127);
