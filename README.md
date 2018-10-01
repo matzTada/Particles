@@ -23,6 +23,9 @@ alt="movie on youtube" width=40% border="10" /></a>
 * 渋滞もナッシュ均衡か
 * 合流・分散は確率的な発生・消失で表せる
 
+## Triangles
+* Load Image --> Draw with triangles
+
 ## Delaunay triangulation
 * 肝は「どの点も三角形に内包されないこと。」
 * そのものズバリがありましたので、参考にさせていただいてます。 <http://30min-processing.hatenablog.com/entry/2017/02/09/000000>
