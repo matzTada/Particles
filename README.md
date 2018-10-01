@@ -5,14 +5,15 @@ Particles
 " target="_blank"><img src="http://img.youtube.com/vi/w7VFCeh_oME/0.jpg"
 alt="movie on youtube" width=40% border="10" /></a>  
 [movie on youtube](https://www.youtube.com/watch?v=w7VFCeh_oME)  
-  
+
 ## To Do
-* (OK)まずは領域に分けて
-* (OK)APESみたいなのを適用する
+* LowPolyとセルオートマトン的なところを分離する
 * パネルの代わりに向かってく方向に対し、一定範囲で衝突するか確かめるのもありそう
 * 衝突して止まっちゃうときにどうするのか考える。+, -どちらの方向も速度を適用するとぶつかるから。
 * 「競合(同じマスに複数が侵入)」判定と譲り合い。
-* とりあえず色塗るか
+* (OK)とりあえず色塗るか
+* (OK)まずは領域に分けて
+* (OK)APESみたいなのを適用する
 
 ## Ideas, memo
 * ドロネー三角形分割
