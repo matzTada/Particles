@@ -5,6 +5,7 @@ Particles
 " target="_blank"><img src="http://img.youtube.com/vi/w7VFCeh_oME/0.jpg"
 alt="movie on youtube" width=40% border="10" /></a>  
 [movie on youtube](https://www.youtube.com/watch?v=w7VFCeh_oME)  
+demo: <https://matztada.github.io/other/particles/Particles_imageread.html>
 
 ## To Do
 * LowPolyとセルオートマトン的なところを分離する
