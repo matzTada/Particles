@@ -23,6 +23,7 @@ demo: <https://matztada.github.io/other/particles/Particles_imageread.html>
 * ASEP, 自己駆動粒子、粉流体、パーコレーション
 * 渋滞もナッシュ均衡か
 * 合流・分散は確率的な発生・消失で表せる
+* ゲームAI、エージェント、群衆
 
 ## Triangles
 * Load Image --> Draw with triangles
