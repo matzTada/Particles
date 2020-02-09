@@ -31,6 +31,12 @@ function setup() {
 
   background(127);
 
+  // four corners
+  pts.push(new Particle({ x: 0, y: 0, vx: 0, vy: 0, r: 1, area: 0}));
+  pts.push(new Particle({ x: 0, y: height-1, vx: 0, vy: 0, r: 1, area: 0}));
+  pts.push(new Particle({ x: width-1, y: 0, vx: 0, vy: 0, r: 1, area: 0}));
+  pts.push(new Particle({ x: width-1, y: height-1, vx: 0, vy: 0, r: 1, area: 0}));
+
   for (var i = 0; i < 100; i++) {
     pts.push(new Particle({
       x: random(0, width),
@@ -62,52 +68,8 @@ function draw() {
     tmppt.show(pts);
   }
 
-  // // --- Delaunay traiangle drawing start ---
-  // getDelaunayTriangle();
-  // function getDelaunayTriangle(){
-  //   // translation from pts to vts
-  //   var vts = [];
-  //   pts.forEach((item, i) => {
-  //     vts.push(createVector(item.x, item.y));
-  //   });
-  //
-  //   var delaunayTriangulation = new DelaunayTriangulation();
-  //   for (var i = 0; i < vts.length; i++) {
-  //     delaunayTriangulation.add(vts[i]);
-  //   }
-  //   var triangles = delaunayTriangulation.getTriangles();
-  //
-  //   var tmpbaseimg;
-  //   if(gazous.length > 0){ // deside color
-  //     var tmpbaseimg = gazous[gazous.length - 1];
-  //   }
-  //   stroke(0, 255, 0);
-  //
-  //   // drawing
-  //   for (var ti = 0; ti < triangles.length; ti++) {
-  //     var t = triangles[ti];
-  //
-  //     if(gazous.length > 0){
-  //       var tmpx = (t.vertices[0].x + t.vertices[1].x + t.vertices[2].x)/3;
-  //       var tmpy = (t.vertices[0].y + t.vertices[1].y + t.vertices[2].y)/3;
-  //
-  //       var tmpiro;
-  //       tmpiro = tmpbaseimg.get(
-  //         map(tmpx, 0, width, 0, tmpbaseimg.width),
-  //         map(tmpy, 0, height, 0, tmpbaseimg.height)
-  //         );
-  //       tmpiro = color(red(tmpiro), green(tmpiro), blue(tmpiro));
-  //       fill(tmpiro);
-  //     }else{
-  //       noFill();
-  //     }
-  //
-  //     drawTriangle(
-  //       t.vertices[0].x, t.vertices[0].y,
-  //       t.vertices[1].x, t.vertices[1].y,
-  //       t.vertices[2].x, t.vertices[2].y);
-  //   }
-  // }
+  // --- Delaunay traiangle drawing start ---
+  getDelaunayTriangle(pts);
   // --- Delaunay traiangle drawing end ---
 
   // --- display functions end ---
@@ -146,6 +108,43 @@ function getFieldMatrix(_pts, _cellsize){
   }
 
   return exmat;
+}
+
+function getDelaunayTriangle(_pts){
+  var delaunayTriangulation = new DelaunayTriangulation();
+
+  _pts.forEach((item, i) => {
+    delaunayTriangulation.add(new createVector(item.x, item.y));
+  });
+
+  var triangles = delaunayTriangulation.getTriangles();
+
+  // drawing
+  triangles.forEach((item, i) => {
+    // deside color
+    stroke(0, 255, 0);
+
+    if(gazous.length > 0){
+      var tmpbaseimg = gazous[gazous.length - 1];
+
+      var tmpx = (item.vertices[0].x + item.vertices[1].x + item.vertices[2].x)/3; // center of gravity
+      var tmpy = (item.vertices[0].y + item.vertices[1].y + item.vertices[2].y)/3; // center of gravity
+
+      var tmpiro = tmpbaseimg.get(
+        map(tmpx, 0, width, 0, tmpbaseimg.width),
+        map(tmpy, 0, height, 0, tmpbaseimg.height)
+        );
+      tmpiro = color(red(tmpiro), green(tmpiro), blue(tmpiro));
+      fill(tmpiro);
+    }else{
+      noFill();
+    }
+
+    drawTriangle(
+      item.vertices[0].x, item.vertices[0].y,
+      item.vertices[1].x, item.vertices[1].y,
+      item.vertices[2].x, item.vertices[2].y);
+  });
 }
 
 function Particle(param){
