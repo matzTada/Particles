@@ -23,6 +23,8 @@ var cellsize = 40;
 var gazous = [];
 var gazoucnt = 0;
 
+var indmtx;
+
 function setup() {
   // --- p5 js initialize start ---
   var can = createCanvas(windowWidth, windowHeight);
@@ -31,11 +33,11 @@ function setup() {
 
   background(127);
 
-  // four corners
-  pts.push(new Particle({ x: 0, y: 0, vx: 0, vy: 0, r: 1, area: 0}));
-  pts.push(new Particle({ x: 0, y: height-1, vx: 0, vy: 0, r: 1, area: 0}));
-  pts.push(new Particle({ x: width-1, y: 0, vx: 0, vy: 0, r: 1, area: 0}));
-  pts.push(new Particle({ x: width-1, y: height-1, vx: 0, vy: 0, r: 1, area: 0}));
+  // // four corners
+  // pts.push(new Particle({ x: 0, y: 0, vx: 0, vy: 0, r: 1, area: 0}));
+  // pts.push(new Particle({ x: 0, y: height-1, vx: 0, vy: 0, r: 1, area: 0}));
+  // pts.push(new Particle({ x: width-1, y: 0, vx: 0, vy: 0, r: 1, area: 0}));
+  // pts.push(new Particle({ x: width-1, y: height-1, vx: 0, vy: 0, r: 1, area: 0}));
 
   for (var i = 0; i < 100; i++) {
     pts.push(new Particle({
@@ -48,15 +50,21 @@ function setup() {
     })
     );
   }
+
+  // setup IndicatorMatrix
+  indmtx = new IndicatorMatrix({cellsize: cellsize});
+  indmtx.initialize();
+
 }
 
 function draw() {
   background(0);
 
-  var exmat = getFieldMatrix(pts, cellsize);
+  indmtx.update(pts);
+  indmtx.show();
 
   for(var tmppt of pts){
-    tmppt.move(exmat, cellsize);
+    tmppt.move(indmtx.exmat, cellsize);
   }
 
   for(var tmppt of pts){
@@ -76,38 +84,56 @@ function draw() {
 
 }
 
-function getFieldMatrix(_pts, _cellsize){
-  // initialize matrix = exmat[mat_y][mat_x] with 0
-  var exmat = [];
-  for(var j = 0; j < floor(height/_cellsize)+1; j++){
-    var tmp = [];
-    for(var i = 0; i < floor(width/_cellsize)+1; i++){
-      tmp.push(0);
+function IndicatorMatrix(_param){
+  this.cellsize = _param.cellsize;
+  this.exmat;
+
+  this.initialize = function(){
+    // initialize matrix = exmat[mat_y][mat_x] with 0
+    var exmat = [];
+    for(var j = 0; j < floor(height/this.cellsize)+1; j++){
+      var tmp = [];
+      for(var i = 0; i < floor(width/this.cellsize)+1; i++){
+        tmp.push(0);
+      }
+      exmat.push(tmp);
     }
-    exmat.push(tmp);
+
+    this.exmat = exmat;
   }
 
-  // update matrix by current point positions
-  _pts.forEach((item, i) => {
-    var tmp_pos_x = floor(item.x/_cellsize);
-    var tmp_pos_y = floor(item.y/_cellsize);
-    if(tmp_pos_y < exmat.length && tmp_pos_x < exmat[0].length ){
-      exmat[tmp_pos_y][tmp_pos_x] += 1;
-    }
-  });
+  this.update = function(_pts){
+    // update matrix by current point positions
+    _pts.forEach((item, i) => {
+      var tmp_pos_x = floor(item.x/this.cellsize);
+      var tmp_pos_y = floor(item.y/this.cellsize);
+      if(tmp_pos_y < this.exmat.length && tmp_pos_x < this.exmat[0].length ){
+        this.exmat[tmp_pos_y][tmp_pos_x] += 1;
+      }
+    });
+  }
 
-  // fillout particle exists or congested place
-  stroke(63);
-  for (var y = 0; y < exmat.length ; y++) {
-    for (var x = 0; x < exmat[0].length; x++) {
-      if(exmat[y][x]==1) fill(32, 32, 0);
-      else if(exmat[y][x]>=2) fill(32, 0, 0);
-      else noFill();
-      rect(x*_cellsize, y*_cellsize, _cellsize, _cellsize);
+  this.show = function(){
+    // get max value in matrix
+    var maxvalue = Math.max(...indmtx.exmat.map(function(tmp){return Math.max(...tmp)}));
+    var minvalue = Math.min(...indmtx.exmat.map(function(tmp){return Math.min(...tmp)}));
+
+    // fillout particle exists or congested place
+    stroke(63);
+    for (var y = 0; y < this.exmat.length ; y++) {
+      for (var x = 0; x < this.exmat[0].length; x++) {
+        if(this.exmat[y][x]==1) {
+          fill(32, 32, 0);
+        }else if(this.exmat[y][x]>=2){
+          fill(map(this.exmat[y][x], minvalue, maxvalue, 0, 255), 0, 0);
+        }else{
+          noFill();
+        }
+        rect(x*this.cellsize, y*this.cellsize, this.cellsize, this.cellsize);
+      }
     }
   }
 
-  return exmat;
 }
 
 function getDelaunayTriangle(_pts){
