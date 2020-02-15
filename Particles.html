@@ -27,9 +27,9 @@ var gazoucnt = 0;
 
 var indmtx;
 
-var coef_sep = 1;
-var coef_ali = 1;
-var coef_gra = 1;
+var coef_separate = 1;
+var coef_align = 1;
+var coef_gravity = 1;
 
 // --- gui start ---
 var gui;
@@ -43,9 +43,9 @@ function setup() {
 
   // --- GUI setting start ---
   gui = createGui("MATZPARTICLES");
-  sliderRange(0, 2, 0.1);
+  sliderRange(-1, 2, 0.1);
   gui.addGlobals(
-    "coef_sep","coef_ali","coef_gra"
+    "coef_separate","coef_align","coef_gravity"
   );
   // --- GUI setting end ---
 
@@ -254,15 +254,15 @@ function Particle(_param){
     gravity.normalize();
 
     this.vx += 0
-    + coef_sep*separate.x
-    + coef_ali*align.x
-    + coef_gra*gravity.x
+    + coef_separate*separate.x
+    + coef_align*align.x
+    + coef_gravity*gravity.x
     ;
 
     this.vy += 0
-    + coef_sep*separate.y
-    + coef_ali*align.y
-    + coef_gra*gravity.y
+    + coef_separate*separate.y
+    + coef_align*align.y
+    + coef_gravity*gravity.y
     ;
 
   }
