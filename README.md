@@ -8,9 +8,11 @@ alt="movie on youtube" width=40% border="10" /></a>
 demo: <https://matztada.github.io/other/particles/Particles_imageread.html>
 
 ## To Do
+* Delaunay三角からグラフ化 →最短経路？
 * LowPolyとセルオートマトン的なところを分離する
 * パネルの代わりに向かってく方向に対し、一定範囲で衝突するか確かめるのもありそう
 * 衝突して止まっちゃうときにどうするのか考える。+, -どちらの方向も速度を適用するとぶつかるから。
+* Particle自体がお互いをよけて方向を変えるようにする
 * 「競合(同じマスに複数が侵入)」判定と譲り合い。
 * (OK)とりあえず色塗るか
 * (OK)まずは領域に分けて

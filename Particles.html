@@ -46,7 +46,7 @@ function setup() {
       vx: random(0.5, 2) * (random(0,1) > 0.5 ? 1 : -1),
       vy: random(0.5, 2) * (random(0,1) > 0.5 ? 1 : -1),
       r: random(5, 20),
-      area: 80
+      area: 100
     })
     );
   }
@@ -63,21 +63,13 @@ function draw() {
   indmtx.update(pts);
   indmtx.show();
 
-  for(var tmppt of pts){
-    tmppt.move(indmtx.exmat, cellsize);
-  }
-
-  for(var tmppt of pts){
-    tmppt.checkNeighbor(pts);
-  }
-
-  // display particles
-  for(var tmppt of pts){
-    tmppt.show(pts);
-  }
+  pts.forEach((item, i) => { item.checkNeighbor(pts); });
+  pts.forEach((item, i) => { item.move(indmtx.exmat, cellsize); });
+  pts.forEach((item, i) => { item.drawNeighborLine(pts); });
+  pts.forEach((item, i) => { item.show(pts); });
 
   // --- Delaunay traiangle drawing start ---
-  getDelaunayTriangle(pts);
+  // getDelaunayTriangle(pts);
   // --- Delaunay traiangle drawing end ---
 
   // --- display functions end ---
@@ -125,7 +117,7 @@ function IndicatorMatrix(_param){
         if(this.exmat[y][x]==1) {
           fill(32, 32, 0);
         }else if(this.exmat[y][x]>=2){
-          fill(map(this.exmat[y][x], minvalue, maxvalue, 0, 255), 0, 0);
+          fill(map(this.exmat[y][x], minvalue, maxvalue, 0, 127), map(this.exmat[y][x], minvalue, maxvalue, 0, 127), 0);
         }else{
           noFill();
         }
@@ -173,22 +165,65 @@ function getDelaunayTriangle(_pts){
   });
 }
 
-function Particle(param){
-  this.x = param.x;
-  this.y = param.y;
-  this.vx = param.vx;
-  this.vy = param.vy;
-  this.r = param.r;
-  this.area = param.area;
+function Particle(_param){
+  this.x = _param.x;
+  this.y = _param.y;
+  this.vx = _param.vx;
+  this.vy = _param.vy;
+  this.r = _param.r;
+  this.area = _param.area;
 
   this.checkNeighbor = function(_pts){
-    // display neighbor relation
-    stroke(127, 127, 0);
-    _pts.forEach((item, i) => {
-      if(dist(this.x, this.y, item.x, item.y) < this.area){
-        line(this.x, this.y, item.x, item.y);
-      }
+    var neighbors = _pts.filter(item => {
+      return item != this && dist(this.x, this.y, item.x, item.y) < this.area
     });
+
+    if(neighbors.length <= 0) return;
+
+    var selfpos = createVector(this.x, this.y);
+    var selfvel = createVector(this.vx, this.vy);
+
+    var separate = createVector(0, 0); // rule 1
+    var align = createVector(0, 0); // rule 2
+    var gravity = createVector(0, 0); // rule 3
+    neighbors.forEach((item, i) => {
+      // rule 1 - separation
+      var dif = p5.Vector.sub(selfpos, createVector(item.x, item.y));
+      separate.add(dif.mult(1/dif.mag()));
+
+      // rule 2 - align
+      align.add(createVector(item.vx, item.vy));
+
+      // rule 3 - center gravity
+      gravity.add(createVector(item.x,  item.y));
+    });
+
+    // rule 1
+    separate.mult(1/neighbors.length);
+    separate.normalize();
+
+    // rule 2
+    align.mult(1/neighbors.length);
+    align = p5.Vector.sub(align, selfvel)
+    align.normalize();
+
+    // rule 3
+    gravity.mult(1/neighbors.length);
+    gravity = p5.Vector.sub(gravity, selfpos);
+    gravity.normalize();
+
+    this.vx += 0
+    + separate.x
+    + align.x
+    + gravity.x
+    ;
+
+    this.vy += 0
+    + separate.y
+    + align.y
+    + gravity.y
+    ;
+
   }
 
   this.move = function(_exmat, _cellsize){
@@ -227,6 +262,16 @@ function Particle(param){
     // stroke(127);
     // noFill();
     // ellipse(this.x, this.y, this.area*2, this.area*2);
+  }
+
+  this.drawNeighborLine = function(_pts){
+    // display neighbor relation
+    stroke(127, 127, 0);
+    _pts.forEach((item, i) => {
+      if(dist(this.x, this.y, item.x, item.y) < this.area){
+        line(this.x, this.y, item.x, item.y);
+      }
+    });
   }
 
 }
