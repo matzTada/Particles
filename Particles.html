@@ -18,7 +18,7 @@ document.getElementById('fileaddbutton').addEventListener('change', handleFileSe
 
 
 var pts = [];
-var cellsize = 40;
+var cellsize = 30;
 
 var gazous = [];
 var gazoucnt = 0;
@@ -63,13 +63,25 @@ function draw() {
   indmtx.update(pts);
   indmtx.show();
 
-  pts.forEach((item, i) => { item.checkNeighbor(pts); });
+  pts.forEach((item, i) => { item.boid(pts); });
+
+  // normalize velocity
+  var maxvalue = Math.max(...pts.map(function(tmp){return createVector(tmp.vx, tmp.vy).mag();}));
+  var minvalue = Math.min(...pts.map(function(tmp){return createVector(tmp.vx, tmp.vy).mag();}));
+  // console.log(nf(maxvalue, null, 1), nf(minvalue, null, 1))
+  var MAX_VEL = 10;
+  var magni = maxvalue / MAX_VEL;
+  pts.forEach((item, i) => {
+    item.vx /= magni;
+    item.vy /= magni;
+  });
+
   pts.forEach((item, i) => { item.move(indmtx.exmat, cellsize); });
   pts.forEach((item, i) => { item.drawNeighborLine(pts); });
   pts.forEach((item, i) => { item.show(pts); });
 
   // --- Delaunay traiangle drawing start ---
-  // getDelaunayTriangle(pts);
+  getDelaunayTriangle(pts);
   // --- Delaunay traiangle drawing end ---
 
   // --- display functions end ---
@@ -173,7 +185,18 @@ function Particle(_param){
   this.r = _param.r;
   this.area = _param.area;
 
-  this.checkNeighbor = function(_pts){
+  this.collisionAvoid = function(){
+    // --- check next cell congested? start ---
+    // var nextnumx = floor(nextx/_cellsize);
+    // var nextnumy = floor(nexty/_cellsize);
+    // if((nextnumx != floor(this.x/_cellsize) || nextnumy != floor(this.y/_cellsize))
+    //   && (_exmat[nextnumy][nextnumx] >= 1)){ // collision detection
+    //     console.log("detect: ", this.x, this.y);
+    // }
+    // --- check next cell congested? end ---
+  }
+
+  this.boid = function(_pts){
     var neighbors = _pts.filter(item => {
       return item != this && dist(this.x, this.y, item.x, item.y) < this.area
     });
@@ -229,20 +252,12 @@ function Particle(_param){
   this.move = function(_exmat, _cellsize){
     var nextx = this.x + this.vx;
     var nexty = this.y + this.vy;
+
     // roll back the world if the partcile reaches the edge of space
     if(nextx < 0) nextx = nextx + width;
     else if(width <= nextx) nextx = nextx - width;
     if(nexty < 0) nexty = nexty + height;
     else if(height <= nexty) nexty = nexty - height;
-
-    // --- check next cell congested? start ---
-    // var nextnumx = floor(nextx/_cellsize);
-    // var nextnumy = floor(nexty/_cellsize);
-    // if((nextnumx != floor(this.x/_cellsize) || nextnumy != floor(this.y/_cellsize))
-    //   && (_exmat[nextnumy][nextnumx] >= 1)){ // collision detection
-    //     console.log("detect: ", this.x, this.y);
-    // }
-    // --- check next cell congested? end ---
 
     // update position
     this.x = nextx;
@@ -252,16 +267,20 @@ function Particle(_param){
   this.show = function(_pts){
     stroke(255, 127);
     fill(255, 127);
-    ellipse(this.x, this.y, this.r, this.r);
 
     // show direction
-    stroke(255);
-    line(this.x, this.y, this.x + this.r*this.vx, this.y + this.r*this.vy);
+    var selfvel = createVector(this.vx, this.vy);
+    selfvel.normalize();
 
-    // // display area
-    // stroke(127);
-    // noFill();
-    // ellipse(this.x, this.y, this.area*2, this.area*2);
+    drawTriangle(
+      this.x + 0.5*this.r*selfvel.x,
+      this.y + 0.5*this.r*selfvel.y,
+      this.x + 0.25*this.r*selfvel.copy().rotate(HALF_PI).x - 0.25*this.r*selfvel.x,
+      this.y + 0.25*this.r*selfvel.copy().rotate(HALF_PI).y - 0.25*this.r*selfvel.y,
+      this.x + 0.25*this.r*selfvel.copy().rotate(-HALF_PI).x - 0.25*this.r*selfvel.x,
+      this.y + 0.25*this.r*selfvel.copy().rotate(-HALF_PI).y - 0.25*this.r*selfvel.y
+    );
+
   }
 
   this.drawNeighborLine = function(_pts){
@@ -272,6 +291,11 @@ function Particle(_param){
         line(this.x, this.y, item.x, item.y);
       }
     });
+
+    // // display area
+    // stroke(127);
+    // noFill();
+    // ellipse(this.x, this.y, this.area*2, this.area*2);
   }
 
 }
