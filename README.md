@@ -1,11 +1,17 @@
 # Particles
 Particles
 
+demo: <https://matztada.github.io/other/particles/Particles.html>
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=8lUcG1BBg9s
+" target="_blank"><img src="http://img.youtube.com/vi/8lUcG1BBg9s/0.jpg"
+alt="movie on youtube" width=40% border="10" /></a>  
+[movie on youtube](https://www.youtube.com/watch?v=8lUcG1BBg9s) on Feb. 15th, 2020  
+
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=w7VFCeh_oME
 " target="_blank"><img src="http://img.youtube.com/vi/w7VFCeh_oME/0.jpg"
 alt="movie on youtube" width=40% border="10" /></a>  
-[movie on youtube](https://www.youtube.com/watch?v=w7VFCeh_oME)  
-demo: <https://matztada.github.io/other/particles/Particles_imageread.html>
+[movie on youtube](https://www.youtube.com/watch?v=w7VFCeh_oME) on Sep. 27th, 2018  
 
 ## To Do
 * Delaunay三角からグラフ化 →最短経路？
